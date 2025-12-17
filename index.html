@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNG to WebP Converter (All under 100KB)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+        
+        .webp-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #1a73e8, #4285f4);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .upload-area {
+            border: 3px dashed #4285f4;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            background-color: #f8fafc;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover, .upload-area.dragover {
+            background-color: #e8f0fe;
+            border-color: #1a73e8;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #4285f4;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .upload-hint {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+        
+        .upload-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 600;
+        }
+        
+        .upload-btn:hover {
+            background-color: #1a73e8;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .progress-area {
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .progress-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #34a853;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .quality-control {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #eaeaea;
+            display: none;
+        }
+        
+        .quality-title {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .quality-slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .quality-value {
+            text-align: center;
+            font-weight: bold;
+            color: #4285f4;
+        }
+        
+        .size-limit {
+            text-align: center;
+            color: #ea4335;
+            font-weight: 600;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .image-list {
+            margin-bottom: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+            padding: 15px;
+            display: none;
+        }
+        
+        .image-list-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .image-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .image-item:last-child {
+            border-bottom: none;
+        }
+        
+        .image-preview {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+            border: 1px solid #ddd;
+        }
+        
+        .image-name {
+            flex-grow: 1;
+            font-size: 0.95rem;
+            color: #2c3e50;
+            word-break: break-all;
+        }
+        
+        .image-size {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+        
+        .size-ok {
+            color: #34a853;
+            font-weight: 600;
+        }
+        
+        .size-warning {
+            color: #ea4335;
+            font-weight: 600;
+        }
+        
+        .action-area {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .convert-btn {
+            background-color: #34a853;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .convert-btn:hover {
+            background-color: #2e8b47;
+        }
+        
+        .convert-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #4285f4;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .compression-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .compression-stat {
+            text-align: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            min-width: 120px;
+        }
+        
+        .compression-stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #4285f4;
+            margin-bottom: 5px;
+        }
+        
+        .compression-stat-label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+        
+        .webp-benefits {
+            background-color: #e8f0fe;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #4285f4;
+        }
+        
+        .webp-benefits-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+        
+        .webp-benefits-list {
+            font-size: 0.9rem;
+            color: #5f6368;
+            margin-left: 15px;
+        }
+        
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #4285f4;
+            padding: 15px;
+            margin-top: 25px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.95rem;
+        }
+        
+        .info-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        
+        .note {
+            color: #ea4335;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .upload-area {
+                padding: 30px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PNG to WebP Converter <span class="webp-badge">WebP</span></h1>
+            <p class="subtitle">Upload PNG images, convert to WebP format (all under 100KB), and download as ZIP</p>
+        </header>
+        
+        <main>
+            <div class="upload-area" id="dropArea">
+                <div class="upload-icon">📁</div>
+                <p class="upload-text">Drag & Drop PNG Images Here</p>
+                <p class="upload-hint">or click to browse files (30-50 PNG images)</p>
+                <button class="upload-btn" id="browseBtn">Select PNG Files</button>
+                <input type="file" id="fileInput" accept="image/png" multiple>
+            </div>
+            
+            <div class="quality-control" id="qualityControl">
+                <h3 class="quality-title">WebP Quality</h3>
+                <input type="range" class="quality-slider" id="qualitySlider" min="0.1" max="1" step="0.05" value="0.8">
+                <div class="quality-value" id="qualityValue">80%</div>
+                <div class="size-limit">All WebP images will be compressed to under 100KB</div>
+            </div>
+            
+            <div class="progress-area" id="progressArea">
+                <h3 class="progress-title">Upload Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text" id="progressText">0 files uploaded</p>
+            </div>
+            
+            <div class="image-list" id="imageList">
+                <h3 class="image-list-title">Selected Images</h3>
+                <div id="imageListContent"></div>
+            </div>
+            
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p id="loadingText">Converting to WebP (under 100KB)...</p>
+                <div class="compression-info" id="compressionInfo"></div>
+            </div>
+            
+            <div class="action-area">
+                <button class="convert-btn" id="convertBtn" disabled>Convert to WebP & Download ZIP</button>
+            </div>
+            
+            <div class="webp-benefits">
+                <div class="webp-benefits-title">Why WebP?</div>
+                <ul class="webp-benefits-list">
+                    <li><strong>25-35% smaller</strong> than JPEG at same quality</li>
+                    <li>Supports <strong>transparency</strong> (unlike JPEG)</li>
+                    <li>Better compression than PNG and JPEG</li>
+                    <li>Modern format supported by all major browsers</li>
+                </ul>
+            </div>
+            
+            <div class="info-box">
+                <p class="info-title">How it works:</p>
+                <ol>
+                    <li>Select PNG images (30-50 images recommended)</li>
+                    <li>Adjust WebP quality if needed</li>
+                    <li>Click convert - all images will be compressed to under 100KB each</li>
+                    <li>Download all converted WebP images in a ZIP file</li>
+                </ol>
+                <p class="note">Note: The tool automatically reduces quality/resolution to ensure all WebP files are under 100KB. All processing happens in your browser.</p>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Personal Image Converter • All output WebP files under 100KB</p>
+        </footer>
+    </div>
+
+    <!-- JSZip library for creating zip files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <script>
+        // DOM elements
+        const fileInput = document.getElementById('fileInput');
+        const browseBtn = document.getElementById('browseBtn');
+        const dropArea = document.getElementById('dropArea');
+        const qualityControl = document.getElementById('qualityControl');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+        const progressArea = document.getElementById('progressArea');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const imageList = document.getElementById('imageList');
+        const imageListContent = document.getElementById('imageListContent');
+        const convertBtn = document.getElementById('convertBtn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const loadingText = document.getElementById('loadingText');
+        const compressionInfo = document.getElementById('compressionInfo');
+        
+        // State variables
+        let uploadedImages = [];
+        const maxImages = 50;
+        const MAX_SIZE_KB = 100;
+        const MAX_SIZE_BYTES = MAX_SIZE_KB * 1024;
+        let currentQuality = 0.8;
+        let compressionStats = {
+            originalTotalSize: 0,
+            compressedTotalSize: 0,
+            imagesCompressed: 0,
+            qualityReduced: 0,
+            imagesResized: 0
+        };
+        
+        // Event listeners
+        browseBtn.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        // Drag and drop functionality
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('dragover');
+        });
+        
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('dragover');
+        });
+        
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+        
+        // Quality slider
+        qualitySlider.addEventListener('input', (e) => {
+            currentQuality = parseFloat(e.target.value);
+            qualityValue.textContent = `${Math.round(currentQuality * 100)}%`;
+        });
+        
+        // Convert button click handler
+        convertBtn.addEventListener('click', convertToWebPAndDownload);
+        
+        // Handle selected files
+        function handleFiles(files) {
+            const fileArray = Array.from(files);
+            const pngFiles = fileArray.filter(file => file.type === 'image/png');
+            
+            if (pngFiles.length === 0) {
+                alert('Please select PNG image files.');
+                return;
+            }
+            
+            if (pngFiles.length > maxImages) {
+                alert(`You selected ${pngFiles.length} files. Maximum allowed is ${maxImages}. Only the first ${maxImages} will be processed.`);
+                pngFiles.splice(maxImages);
+            }
+            
+            // Reset previous uploads
+            uploadedImages = [];
+            imageListContent.innerHTML = '';
+            compressionStats = {
+                originalTotalSize: 0,
+                compressedTotalSize: 0,
+                imagesCompressed: 0,
+                qualityReduced: 0,
+                imagesResized: 0
+            };
+            
+            // Calculate total original size
+            compressionStats.originalTotalSize = pngFiles.reduce((sum, file) => sum + file.size, 0);
+            
+            // Show quality control
+            qualityControl.style.display = 'block';
+            
+            // Show progress area
+            progressArea.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressText.textContent = `0/${pngFiles.length} files loaded`;
+            
+            // Process files one by one with progress
+            processFilesWithProgress(pngFiles);
+        }
+        
+        // Process files with visual progress
+        function processFilesWithProgress(files) {
+            let processedCount = 0;
+            
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    const img = new Image();
+                    
+                    img.onload = () => {
+                        // Store image data
+                        uploadedImages.push({
+                            name: file.name.replace(/\.png$/i, '.webp'),
+                            originalName: file.name,
+                            originalSize: file.size,
+                            imgElement: img,
+                            width: img.width,
+                            height: img.height,
+                            hasTransparency: hasTransparency(img), // Check if PNG has transparency
+                            webpData: null,
+                            webpSize: 0
+                        });
+                        
+                        // Update progress
+                        processedCount++;
+                        const progressPercent = (processedCount / files.length) * 100;
+                        progressFill.style.width = `${progressPercent}%`;
+                        progressText.textContent = `${processedCount}/${files.length} files loaded`;
+                        
+                        // Add to image list
+                        addImageToList(file.name, file.size, 0);
+                        
+                        // When all files are processed
+                        if (processedCount === files.length) {
+                            // Show convert button
+                            convertBtn.style.display = 'block';
+                            convertBtn.disabled = false;
+                            
+                            // Show image list
+                            imageList.style.display = 'block';
+                            
+                            // Hide progress after a short delay
+                            setTimeout(() => {
+                                progressArea.style.display = 'none';
+                            }, 1000);
+                        }
+                    };
+                    
+                    img.src = e.target.result;
+                };
+                
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Check if image has transparency
+        function hasTransparency(img) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            try {
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                // Check alpha channel for any transparency
+                for (let i = 3; i < data.length; i += 4) {
+                    if (data[i] < 255) {
+                        return true; // Found a transparent pixel
+                    }
+                }
+            } catch (e) {
+                // If we can't check, assume no transparency
+                return false;
+            }
+            
+            return false;
+        }
+        
+        // Add image to the list display
+        function addImageToList(fileName, originalSize, webpSize = 0) {
+            const originalSizeKB = Math.round(originalSize / 1024);
+            const webpSizeKB = webpSize > 0 ? Math.round(webpSize / 1024) : 0;
+            const isUnderLimit = webpSize > 0 && webpSize <= MAX_SIZE_BYTES;
+            
+            const imageItem = document.createElement('div');
+            imageItem.className = 'image-item';
+            imageItem.dataset.fileName = fileName;
+            
+            imageItem.innerHTML = `
+                <img class="image-preview" src="" alt="Preview">
+                <div class="image-name">${fileName}</div>
+                <div class="${webpSize > 0 ? (isUnderLimit ? 'size-ok' : 'size-warning') : 'image-size'}">
+                    ${webpSize > 0 ? 
+                        `${webpSizeKB} KB ${isUnderLimit ? '✓' : '⚠'}` : 
+                        `${originalSizeKB} KB`
+                    }
+                </div>
+            `;
+            
+            imageListContent.appendChild(imageItem);
+            
+            // Set generic thumbnail
+            imageItem.querySelector('.image-preview').src = 'data:image/svg+xml;base64,' + btoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#4285f4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+            `);
+        }
+        
+        // Update image in the list
+        function updateImageInList(fileName, webpSize) {
+            const imageItem = document.querySelector(`.image-item[data-file-name="${fileName}"]`);
+            if (!imageItem) return;
+            
+            const webpSizeKB = Math.round(webpSize / 1024);
+            const isUnderLimit = webpSize <= MAX_SIZE_BYTES;
+            
+            const sizeElement = imageItem.querySelector('.image-size, .size-ok, .size-warning');
+            if (sizeElement) {
+                sizeElement.className = isUnderLimit ? 'size-ok' : 'size-warning';
+                sizeElement.textContent = `${webpSizeKB} KB ${isUnderLimit ? '✓' : '⚠'}`;
+            }
+        }
+        
+        // Compress a single image to WebP under 100KB
+        function compressImageToWebPUnder100KB(img, quality, hasTransparency) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                let currentQuality = quality;
+                let currentWidth = img.width;
+                let currentHeight = img.height;
+                let webpData;
+                let webpSize;
+                
+                // Function to compress and check size
+                const compressAndCheck = () => {
+                    canvas.width = currentWidth;
+                    canvas.height = currentHeight;
+                    
+                    // Clear canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // If image has transparency, preserve it by drawing on transparent background
+                    // Otherwise, fill with white background
+                    if (!hasTransparency) {
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+                    
+                    // Draw the image
+                    ctx.drawImage(img, 0, 0, currentWidth, currentHeight);
+                    
+                    // Convert to WebP
+                    webpData = canvas.toDataURL('image/webp', currentQuality);
+                    
+                    // Calculate approximate size
+                    webpSize = Math.round((webpData.length - 'data:image/webp;base64,'.length) * 0.75);
+                    
+                    return webpSize;
+                };
+                
+                // First try with current quality and original size
+                let size = compressAndCheck();
+                
+                // If still too large, reduce quality
+                while (size > MAX_SIZE_BYTES && currentQuality > 0.1) {
+                    currentQuality = Math.max(0.1, currentQuality - 0.1);
+                    size = compressAndCheck();
+                    
+                    if (size <= MAX_SIZE_BYTES) {
+                        compressionStats.qualityReduced++;
+                        break;
+                    }
+                }
+                
+                // If still too large, reduce dimensions
+                while (size > MAX_SIZE_BYTES && currentWidth > 100 && currentHeight > 100) {
+                    currentWidth = Math.floor(currentWidth * 0.9);
+                    currentHeight = Math.floor(currentHeight * 0.9);
+                    size = compressAndCheck();
+                    
+                    if (size <= MAX_SIZE_BYTES) {
+                        compressionStats.imagesResized++;
+                        break;
+                    }
+                }
+                
+                resolve({
+                    webpData,
+                    size,
+                    quality: currentQuality,
+                    width: currentWidth,
+                    height: currentHeight,
+                    wasResized: currentWidth !== img.width || currentHeight !== img.height
+                });
+            });
+        }
+        
+        // Update compression info display
+        function updateCompressionInfo() {
+            const reductionPercent = compressionStats.originalTotalSize > 0 
+                ? Math.round((1 - compressionStats.compressedTotalSize / compressionStats.originalTotalSize) * 100) 
+                : 0;
+            
+            compressionInfo.innerHTML = `
+                <div class="compression-stat">
+                    <div class="compression-stat-value">${formatBytes(compressionStats.compressedTotalSize)}</div>
+                    <div class="compression-stat-label">WebP Size</div>
+                </div>
+                <div class="compression-stat">
+                    <div class="compression-stat-value">${reductionPercent}%</div>
+                    <div class="compression-stat-label">Reduction</div>
+                </div>
+                <div class="compression-stat">
+                    <div class="compression-stat-value">${compressionStats.imagesCompressed}/${uploadedImages.length}</div>
+                    <div class="compression-stat-label">Processed</div>
+                </div>
+            `;
+        }
+        
+        // Format bytes to readable format
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Convert images to WebP and create zip file
+        async function convertToWebPAndDownload() {
+            if (uploadedImages.length === 0) {
+                alert('No images to convert.');
+                return;
+            }
+            
+            // Show loading indicator
+            loadingIndicator.style.display = 'block';
+            loadingText.textContent = `Converting ${uploadedImages.length} images to WebP (under 100KB)...`;
+            convertBtn.disabled = true;
+            progressArea.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Starting WebP conversion...';
+            
+            // Reset compression stats
+            compressionStats.compressedTotalSize = 0;
+            compressionStats.imagesCompressed = 0;
+            compressionStats.qualityReduced = 0;
+            compressionStats.imagesResized = 0;
+            
+            try {
+                // Create a new zip file
+                const zip = new JSZip();
+                
+                // Process each image
+                for (let i = 0; i < uploadedImages.length; i++) {
+                    const image = uploadedImages[i];
+                    
+                    // Update progress
+                    const progressPercent = ((i + 1) / uploadedImages.length) * 100;
+                    progressFill.style.width = `${progressPercent}%`;
+                    progressText.textContent = `Converting image ${i + 1} of ${uploadedImages.length} to WebP...`;
+                    
+                    // Convert image to WebP under 100KB
+                    const result = await compressImageToWebPUnder100KB(
+                        image.imgElement, 
+                        currentQuality, 
+                        image.hasTransparency
+                    );
+                    
+                    // Store WebP data
+                    image.webpData = result.webpData;
+                    image.webpSize = result.size;
+                    
+                    // Update compression stats
+                    compressionStats.compressedTotalSize += result.size;
+                    compressionStats.imagesCompressed++;
+                    
+                    // Update the image in the list
+                    updateImageInList(image.originalName, result.size);
+                    
+                    // Update compression info
+                    updateCompressionInfo();
+                    
+                    // Convert data URL to blob and add to zip
+                    const byteString = atob(result.webpData.split(',')[1]);
+                    const ab = new ArrayBuffer(byteString.length);
+                    const ia = new Uint8Array(ab);
+                    
+                    for (let j = 0; j < byteString.length; j++) {
+                        ia[j] = byteString.charCodeAt(j);
+                    }
+                    
+                    const blob = new Blob([ab], { type: 'image/webp' });
+                    zip.file(image.name, blob);
+                }
+                
+                // Generate the zip file
+                progressText.textContent = 'Creating ZIP file...';
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                
+                // Create download link
+                const url = URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `webp-images-${new Date().getTime()}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Clean up
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+                
+                // Show completion
+                progressText.textContent = 'WebP conversion complete! Download started.';
+                
+                // Show summary
+                setTimeout(() => {
+                    const reduction = Math.round((1 - compressionStats.compressedTotalSize / compressionStats.originalTotalSize) * 100);
+                    const summary = [
+                        `✅ Successfully converted ${uploadedImages.length} images to WebP!`,
+                        `📊 All WebP files are under 100KB each`,
+                        `📉 Total size reduced by ${reduction}%`,
+                        `⚙️ ${compressionStats.qualityReduced} images needed quality reduction`,
+                        compressionStats.imagesResized > 0 ? `📏 ${compressionStats.imagesResized} images were resized` : ''
+                    ].filter(line => line).join('\n');
+                    
+                    alert(summary);
+                    
+                    // Reset
+                    loadingIndicator.style.display = 'none';
+                    convertBtn.disabled = false;
+                    progressArea.style.display = 'none';
+                }, 500);
+                
+            } catch (error) {
+                console.error('WebP conversion error:', error);
+                
+                // Check if browser supports WebP
+                const canvas = document.createElement('canvas');
+                if (!canvas.toDataURL('image/webp').startsWith('data:image/webp')) {
+                    alert('Your browser does not support WebP conversion. Please use a modern browser like Chrome, Edge, or Firefox.');
+                } else {
+                    alert('An error occurred during WebP conversion. Please try again.');
+                }
+                
+                // Reset loading state
+                loadingIndicator.style.display = 'none';
+                convertBtn.disabled = false;
+                progressArea.style.display = 'none';
+            }
+        }
+        
+        // Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('PNG to WebP converter ready. All output WebP files will be under 100KB.');
+            
+            // Check WebP support
+            const canvas = document.createElement('canvas');
+            const supportsWebP = canvas.toDataURL('image/webp').startsWith('data:image/webp');
+            
+            if (!supportsWebP) {
+                alert('⚠️ Your browser does not support WebP conversion. \n\nPlease use Chrome, Edge, Firefox, or another modern browser that supports WebP.');
+            }
+        });
+    </script>
+</body>
+</html>
